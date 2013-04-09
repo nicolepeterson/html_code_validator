@@ -1,6 +1,122 @@
-*.class
+//This program evalates html tags through the use of stacks and
+//queues. Validate prints a textual representation, including error 
 
-# Package Files #
-*.jar
-*.war
-*.ear
+//messages when the html code contains mistakes. HtmlValdator utilzes
+//the add method putting tags in the end, remove all which removes any
+//matches of html tags to the element, and gettags() which returns the 
+
+//queue in its restored proir state.
+
+import java.util.*;
+
+public class HtmlValidator {
+   private Queue<HtmlTag> search;
+   
+   //post: intializes validator to store an empty queue of 
+   //      html tags
+
+   public HtmlValidator() {
+      search = new LinkedList<HtmlTag>();
+   }
+   
+   //pre : tags != null, (if not throws IllegalArgumentException)
+   //post: intializes validator to store the given queue of
+
+   //      html tags
+   public HtmlValidator(Queue<HtmlTag> tags) {
+      if (tags == null) {
+         throw new IllegalArgumentException();
+      }
+      search = tags; 
+   }
+   
+   //pre : tag != null, (if not throws IllegalArgumentException)
+
+   //post: adds given value to the end of the validator queue
+   public void addTag(HtmlTag tag) {
+      if (tag == null) {
+         throw new IllegalArgumentException();
+      }
+      search.add(tag);  
+
+   }
+   
+   //pre : element != null, (if not throws IllegalArgumentException)
+   //post: removes any tag in validators queue that matches the given
+   //      element 
+   public void removeAll(String element) {
+
+      if (element == null) {
+         throw new IllegalArgumentException();
+      }
+      for (int i = 0; i < search.size(); i++) {
+         HtmlTag tempTag = search.remove();
+         if (!tempTag.getElement().equals(element)) {
+
+            search.add(tempTag);
+         }
+      }
+   } 
+      
+   //post: returns validators queue of html tags, in its restored 
+   //      prior state
+   public Queue<HtmlTag> getTags() {
+
+      return search;
+   }
+   
+   //post: helper function, creates indentation in vaidate for 
+   //      opening and closing tags
+   private void tagIndentation(int count) {
+      for (int i = 0; i < count; i++) {
+
+         System.out.print("    ");
+      }
+   }
+   
+   //post: prints an indented textual representation of html tags, 
+   //      tags following opening tags are printed 4 spaces to the right
+
+   public void validate() {
+      Stack<HtmlTag> holdTag = new Stack<HtmlTag>();
+      int count = 0;
+      for (int i = 0; i < search.size(); i++) {
+         HtmlTag temp = search.remove(); 
+
+         if (temp.isOpenTag() && !temp.isSelfClosing()) {
+             holdTag.push(temp);
+             search.add(temp);
+             tagIndentation(count);
+             count++;
+             System.out.println(temp.toString());
+
+         } else if (temp.isSelfClosing()){
+             tagIndentation(count);
+             search.add(temp);
+             System.out.println(temp.toString());
+         } else {
+             search.add(temp);
+
+             if (!holdTag.isEmpty()) {
+                HtmlTag compare = holdTag.pop();
+                if (temp.matches(compare)) {
+                    count--;
+                    tagIndentation(count);
+                    System.out.println(temp.toString());
+
+                } else {
+                    System.out.println("ERROR unexpected tag: " + temp.toString());
+                    holdTag.push(compare);
+                }
+             } else {
+                 System.out.println("ERROR unexpected tag: " + temp.toString());
+
+             } 
+         }
+      }
+      while (!holdTag.isEmpty()) {
+         System.out.println("ERROR unclosed tag: " + holdTag.pop().toString());
+      }         
+   }
+}
+
